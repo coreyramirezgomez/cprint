@@ -58,6 +58,11 @@ else
 	On_White='\e[47m'       # White
 	NC="\e[m"               # Color Reset
 fi
+if which printf >&/dev/null; then	
+	PRINTF_E=0
+else
+	PRINTF_E=1
+fi
 if which cowsay >&/dev/null; then
 	CS="$(which cowsay)"
 else
@@ -153,13 +158,18 @@ debug()
 		echo "STYLE: $STYLE"
 		echo "RAINBOW: $RAINBOW"
 		echo "STRING: $STRING"
+		echo "PRINTF_E: $PRINTF_E"
 	fi
 }
 process_prenl()
 {
 	while [ $PNL -ne 0 ] 
 	do
-		printf "\n"
+		if [ $PRINTF_E -eq 0 ];then
+			printf "\n"
+		else
+			echo ""
+		fi
 		((PNL--))
 	done
 }
@@ -182,9 +192,19 @@ process_string()
 			[ ! -z $FGND ] && string_proc="$FGND$string_proc"
 		fi
 		[ ! -z $FGND ] || [ ! -z $BKGN ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
-		printf -- "$string_proc"
+		if [ $PRINTF_E -eq 0 ]; then
+			printf -- "$string_proc"
+		else
+			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
+			echo "$string_proc"
+		fi
 	else
-		printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+		if [ $PRINTF_E -eq 0 ]; then
+			printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+		else
+			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
+			echo "$FGND""$BKGN""$string_proc""$NC"
+		fi
 	fi
 }
 random_color()
@@ -261,5 +281,9 @@ fi
 debug
 process_prenl
 process_string "$STRING"
-[ $NL -eq 1 ] && printf "\n"
+if [ $PRINTF_E -eq 0 ];then
+	[ $NL -eq 1 ] && printf "\n"
+else
+	[ $NL -eq 1 ] && echo ""
+fi
 exit 0

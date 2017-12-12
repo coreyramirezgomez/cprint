@@ -25,6 +25,11 @@ print()
 	fi
 	colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 	local DEBUG=0
+	if which printf >&/dev/null; then	
+		PRINTF_E=0
+	else
+		PRINTF_E=1
+	fi
 	FGND=""
 	NL=1
 	PNL=0
@@ -72,12 +77,21 @@ print()
 	fi
 	while [ $PNL -ne 0 ] 
 	do
-		printf "\n"
+		if [ $PRINTF_E -eq 0 ];then
+			printf "\n"
+		else
+			echo ""
+		fi
 		((PNL--))
 	done
 	[ ! -z $FGND ] && STRING="$FGND$STRING$NC"
-	printf -- "$STRING"
-	[ $NL -eq 1 ] && printf "\n"
+	if [ $PRINTF_E -eq 0 ];then
+		printf -- "$STRING"
+		[ $NL -eq 1 ] && printf "\n"
+	else
+		echo "$STRING"
+		[ $NL -eq 1 ] && echo ""
+	fi
 }
 tests()
 {

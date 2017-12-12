@@ -69,6 +69,11 @@ print()
 	else
 		FIG=""
 	fi
+	if which printf >&/dev/null; then	
+		PRINTF_E=0
+	else
+		PRINTF_E=1
+	fi
 	colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 	DEBUG=0
 	FGND=""
@@ -151,7 +156,11 @@ print()
 	fi
 	while [ $PNL -ne 0 ] 
 	do
-		printf "\n"
+		if [ $PRINTF_E -eq 0 ];then
+			printf "\n"
+		else
+			echo ""
+		fi
 		((PNL--))
 	done
 	[ ! -z $STYLE ] && STRING="$($STYLE $STRING)"
@@ -170,11 +179,25 @@ print()
 			[ ! -z $FGND ] && STRING="$FGND$STRING"
 		fi
 		[ ! -z $FGND ] || [ ! -z $BKGN ] && STRING="$STRING$NC"	# Append color reset if foreground/background is set.
-		printf -- "$STRING"
+		if [ $PRINTF_E -eq 0 ]; then
+			printf -- "$string_proc"
+		else
+			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
+			echo "$string_proc"
+		fi
 	else
-		printf -- "$FGND$BKGN%$POS"s"$NC" "$STRING"
+		if [ $PRINTF_E -eq 0 ]; then
+			printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+		else
+			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
+			echo "$FGND""$BKGN""$string_proc""$NC"
+		fi
 	fi
-	[ $NL -eq 1 ] && printf "\n"
+	if [ $PRINTF_E -eq 0 ];then
+		[ $NL -eq 1 ] && printf "\n"
+	else
+		[ $NL -eq 1 ] && echo ""
+	fi
 }
 tests()
 {
