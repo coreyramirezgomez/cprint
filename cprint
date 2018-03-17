@@ -29,7 +29,7 @@ if [ "$(uname -s)" == "Darwin" ];then
 	On_Cyan='\033[46m'        # Cyan
 	On_White='\033[47m'       # White
 	NC='\033[m'               # Color Reset
-else 
+else
 	Black='\e[0;30m'        # Black
 	Red='\e[0;31m'          # Red
 	Green='\e[0;32m'        # Green
@@ -58,7 +58,7 @@ else
 	On_White='\e[47m'       # White
 	NC="\e[m"               # Color Reset
 fi
-if which printf >&/dev/null; then	
+if which printf >&/dev/null; then
 	PRINTF_E=0
 else
 	PRINTF_E=1
@@ -74,7 +74,8 @@ else
 	FIG=""
 fi
 colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
-VERBOSTIY=""
+DEBUG=0
+VERBOSITY=""
 FGND=""
 BKGN=""
 BOLD=0
@@ -84,23 +85,24 @@ STRING=" "
 STYLE=""
 POS=0
 RAINBOW=0
+ERR_OUT=0
 
 #### Functions ####
 selftests()
 {
 	$0 -c "$VERBOSITY" "Centered"
-	$0 -F "$VERBOSITY" "Figlet" 
-	$0 -A "$VERBOSITY" "Cowsay" 
-	$0 -K "$VERBOSITY" "Black" 
-	$0 -R "$VERBOSITY" "Red" 
+	$0 -F "$VERBOSITY" "Figlet"
+	$0 -A "$VERBOSITY" "Cowsay"
+	$0 -K "$VERBOSITY" "Black"
+	$0 -R "$VERBOSITY" "Red"
 	$0 -G "$VERBOSITY" "Green"
 	$0 -Y "$VERBOSITY" "Yellow"
 	$0 -B "$VERBOSITY" "Blue"
 	$0 -P "$VERBOSITY" "Purple"
 	$0 -C "$VERBOSITY" "Cyan"
 	$0 -W "$VERBOSITY" "White"
-	$0 -I -K "$VERBOSITY" "Bold Black" 
-	$0 -I -R "$VERBOSITY" "Bold Red" 
+	$0 -I -K "$VERBOSITY" "Bold Black"
+	$0 -I -R "$VERBOSITY" "Bold Red"
 	$0 -I -G "$VERBOSITY" "Bold Green"
 	$0 -I -Y "$VERBOSITY" "Bold Yellow"
 	$0 -I -B "$VERBOSITY" "Bold Blue"
@@ -149,26 +151,34 @@ usage()
 debug()
 {
 	if [[ "$VERBOSITY" == "-v" ]]; then
-		echo "FGND: $FGND"
-		echo "BKGN: $BKGN"
-		echo "BOLD: $BOLD"
-		echo "NL: $NL"
-		echo "PNL: $PNL"
-		echo "POS: $POS"
-		echo "STYLE: $STYLE"
-		echo "RAINBOW: $RAINBOW"
-		echo "STRING: $STRING"
-		echo "PRINTF_E: $PRINTF_E"
+		(>&2 echo "FGND: $FGND")
+		(>&2 echo "BKGN: $BKGN")
+		(>&2 echo "BOLD: $BOLD")
+		(>&2 echo "NL: $NL")
+		(>&2 echo "PNL: $PNL")
+		(>&2 echo "POS: $POS")
+		(>&2 echo "STYLE: $STYLE")
+		(>&2 echo "RAINBOW: $RAINBOW")
+		(>&2 echo "STRING: $STRING")
+		(>&2 echo "PRINTF_E: $PRINTF_E")
 	fi
 }
 process_prenl()
 {
-	while [ $PNL -ne 0 ] 
+	while [ $PNL -ne 0 ]
 	do
 		if [ $PRINTF_E -eq 0 ];then
-			printf "\n"
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 printf "\n")
+			else
+				printf "\n"
+			fi
 		else
-			echo ""
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 echo "")
+			else
+				echo ""
+			fi
 		fi
 		((PNL--))
 	done
@@ -193,29 +203,43 @@ process_string()
 		fi
 		[ ! -z $FGND ] || [ ! -z $BKGN ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
 		if [ $PRINTF_E -eq 0 ]; then
-			printf -- "$string_proc"
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 printf -- "$string_proc")
+			else
+				printf -- "$string_proc"
+			fi
 		else
-			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
-			echo "$string_proc"
+			[ $DEBUG -eq 1 ] && (>&2 echo "printf not found, reverting to echo.")
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 echo "$string_proc")
+			else
+				echo "$string_proc"
+			fi
 		fi
 	else
 		if [ $PRINTF_E -eq 0 ]; then
-			printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc")
+			else
+				printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+			fi
 		else
-			[ $DEBUG -eq 1 ] && echo "printf not found, reverting to echo."
-			echo "$FGND""$BKGN""$string_proc""$NC"
+			[ $DEBUG -eq 1 ] && (>&2 "printf not found, reverting to echo.")
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 echo "$FGND""$BKGN""$string_proc""$NC")
+			else
+				echo "$FGND""$BKGN""$string_proc""$NC"
+			fi
 		fi
 	fi
 }
 random_color()
 {
 	FGND="${colors[$RANDOM % ${#colors[@]}]}"
-	if [[ "$VERBOSITY" == "-v" ]]; then 
-		echo "Random seed: $RANDOM"
-	fi
+	[ $DEBUG -eq 1 ] && (>&2 echo "Random seed: $RANDOM")
 }
 #### Main Run ####
-while getopts "hf:b:IcnpFAKRGYBPCWS:TvZz" opt
+while getopts "hf:b:IcnpFAKRGYBPCWS:TvZzE" opt
 do
 	case "$opt" in
 		"h") usage ;;
@@ -229,7 +253,7 @@ do
 				"purple") [ $BOLD -eq 0 ] && FGND="$Purple" || FGND="$BPurple" ;;
 				"cyan") [ $BOLD -eq 0 ] && FGND="$Cyan" || FGND="$BCyan" ;;
 				"white") [ $BOLD -eq 0 ] && FGND="$White" || FGND="$BWhite" ;;
-				"*") [[ "$VERBOSITY" == "-v" ]] && echo "Unrecognized Arguement: $OPTARG" ;;
+				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
 			esac
 			;;
 		"b")					# Set background color.
@@ -242,7 +266,7 @@ do
 				"purple") BKGN="$On_Purple" ;;
 				"cyan") BKGN="$On_Cyan" ;;
 				"white") BKGN="$On_White" ;;
-				"*") [[ "$VERBOSITY" == "-v" ]] && echo "Unrecognized Arguement: $OPTARG" ;;
+				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
 			esac
 			;;
 		"I") BOLD=1 ;;				# Enable bold text.
@@ -268,22 +292,35 @@ do
 		"W") [ $BOLD -eq 0 ] && FGND="$White" || FGND="$BWhite";;
 		"S") STRING="$OPTARG";;
 		"T") selftests ;;
-		"v") VERBOSITY="-v" ;;
+		"v") VERBOSITY="-v" && DEBUG=1;;
 		"Z") random_color ;;
 		"z") RAINBOW=1 ;;
-		"*") [[ "$VERBOSITY" == "-v" ]] && echo "Unknown Arguement: $opt" ;;
+		"E") ERR_OUT=1 ;;
+		"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unknown Arguement: $opt") ;;
 	esac
 done
 if [[ "$STRING" == " " ]];then
 	shift "$((OPTIND - 1))"
-	STRING="$@" 
+	STRING="$@"
 fi
 debug
 process_prenl
 process_string "$STRING"
 if [ $PRINTF_E -eq 0 ];then
-	[ $NL -eq 1 ] && printf "\n"
+	if [ $NL -eq 1 ]; then
+		if [ $ERR_OUT -eq 1 ]; then
+			(>&2 printf "\n")
+		else
+			printf "\n"
+		fi
+	fi
 else
-	[ $NL -eq 1 ] && echo ""
+	if [ $NL -eq 1 ]; then
+		if [ $ERR_OUT -eq 1 ]; then
+			(>&2 echo "")
+		else
+			echo ""
+		fi
+	fi
 fi
 exit 0
