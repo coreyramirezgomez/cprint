@@ -85,7 +85,7 @@ print()
 	local POS=0
 	local RAINBOW=0
 	local ERR_OUT=0
-	while getopts "f:b:IcnpFAKRGYBPCWDS:" cprint_opt
+	while getopts "f:b:IcnpFAKRGYBPCWvS:" cprint_opt
 	do
 		case "$cprint_opt" in
 			"f")					# Set foreground/text color.
@@ -137,7 +137,7 @@ print()
 			"P") [ $BOLD -eq 0 ] && FGND="$Purple" || FGND="$BPurple" ;;
 			"C") [ $BOLD -eq 0 ] && FGND="$Cyan" || FGND="$BCyan" ;;
 			"W") [ $BOLD -eq 0 ] && FGND="$White" || FGND="$BWhite";;
-			"D") DEBUG=1 ;;
+			"v") DEBUG=1 ;;
 			"S") STRING="$OPTARG" ;;
 			"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unknown Arguement: $opt") ;;
 		esac
