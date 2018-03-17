@@ -73,7 +73,6 @@ if which figlet >&/dev/null; then
 else
 	FIG=""
 fi
-colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 DEBUG=0
 VERBOSITY=""
 FGND=""
@@ -146,11 +145,12 @@ usage()
 	$0 -S "		-v: Enable verbosity for debugging."
 	$0 -Z -S "		-Z: Select a random foreground color for entire text."
 	$0 -z -S "\t\t-z: Rainbow effect. Warning: will eat tabs and newlines."
+	$0 -S "		-E: Send output to stderr instead of stdout (default)"
 	$0
 }
 debug()
 {
-	if [[ "$VERBOSITY" == "-v" ]]; then
+	if [ $DEBUG -eq 1 ]; then
 		(>&2 echo "FGND: $FGND")
 		(>&2 echo "BKGN: $BKGN")
 		(>&2 echo "BOLD: $BOLD")
@@ -159,8 +159,9 @@ debug()
 		(>&2 echo "POS: $POS")
 		(>&2 echo "STYLE: $STYLE")
 		(>&2 echo "RAINBOW: $RAINBOW")
-		(>&2 echo "STRING: $STRING")
 		(>&2 echo "PRINTF_E: $PRINTF_E")
+		(>&2 echo "ERR_OUT: $ERR_OUT")
+		(>&2 echo "STRING: $STRING")
 	fi
 }
 process_prenl()
@@ -182,6 +183,26 @@ process_prenl()
 		fi
 		((PNL--))
 	done
+}
+process_nl()
+{
+	if [ $PRINTF_E -eq 0 ];then
+		if [ $NL -eq 1 ]; then
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 printf "\n")
+			else
+				printf "\n"
+			fi
+		fi
+	else
+		if [ $NL -eq 1 ]; then
+			if [ $ERR_OUT -eq 1 ]; then
+				(>&2 echo "")
+			else
+				echo ""
+			fi
+		fi
+	fi
 }
 process_string()
 {
@@ -235,6 +256,7 @@ process_string()
 }
 random_color()
 {
+	colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 	FGND="${colors[$RANDOM % ${#colors[@]}]}"
 	[ $DEBUG -eq 1 ] && (>&2 echo "Random seed: $RANDOM")
 }
@@ -306,21 +328,5 @@ fi
 debug
 process_prenl
 process_string "$STRING"
-if [ $PRINTF_E -eq 0 ];then
-	if [ $NL -eq 1 ]; then
-		if [ $ERR_OUT -eq 1 ]; then
-			(>&2 printf "\n")
-		else
-			printf "\n"
-		fi
-	fi
-else
-	if [ $NL -eq 1 ]; then
-		if [ $ERR_OUT -eq 1 ]; then
-			(>&2 echo "")
-		else
-			echo ""
-		fi
-	fi
-fi
+process_nl
 exit 0
