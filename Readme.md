@@ -9,16 +9,24 @@ Command line tool and function written in bash to print colorful text and styles
 + Optional: cowsay binary in path
 
 ## Options ##
+		[-h] [-T]
+		[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING
+
 		-h: Display this dialog
-		-f color: Set foreground.
-		-b color: Set background.
-			Accepted color names for -f and -b: black red green yellow blue purple cyan white
-		-I: Enable bold.
-		-c: Center text.
+		-T: Run selftest.
+		-v: Enable verbosity for debugging.
+		-E: Send output to stderr instead of stdout (default)
 		-n: Do not print newline.
 		-p: Prepend newline.
-		-F: Pass text through figlet (if it exists:/usr/local/bin/figlet)
+		-I: Enable bold colors.
 		-A: Pass text through cowsay (if it exists:/usr/local/bin/cowsay)
+		-F: Pass text through figlet (if it exists:/usr/local/bin/figlet)
+		-c: Center text.
+		-b color: Set background.
+		-f color: Set foreground.
+			Accepted color names for -f and -b:  black red green yellow blue purple cyan white
 		-K: Print Black text.
 		-R: Print Red text.
 		-G: Print Green text.
@@ -27,12 +35,9 @@ Command line tool and function written in bash to print colorful text and styles
 		-P: Print Purple text.
 		-C: Print Cyan text.
 		-W: Print White text.
-		-S string: Set the print string.
-		-T: Run selftest.
-		-v: Enable verbosity for debugging.
 		-Z: Select a random foreground color for entire text.
 		-z: Rainbow effect. Warning: will eat tabs and newlines.
-        -E: Send output to stderr instead of stdout (default)
+		-S string: Set the print string.
 
 ## About Files in this repo ##
 + `cprint`: This is the fully featured binary with all listed options above. As long as you meet the system requirements, this should work out of the box. Try running `./cprint -T` to run the selftests to check.
