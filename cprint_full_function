@@ -86,7 +86,9 @@ print()
 	local RAINBOW=0
 	local RANDOM_COLOR=0
 	local ERR_OUT=0
-	while getopts "f:b:IcnpFAKRGYBPCWS:vZzE" cprint_opt
+	local STYLED_LOG=""
+	local NOTSTYLED_LOG=""
+	while getopts "f:b:IcnpFAKRGYBPCWS:vZzEL:l:" cprint_opt
 	do
 		case "$cprint_opt" in
 			"f")					# Set foreground/text color.
@@ -143,6 +145,8 @@ print()
 			"Z") RANDOM_COLOR=1 ;;
 			"z") RAINBOW=1 ;;
 			"E") ERR_OUT=1 ;;
+			"L") STYLED_LOG="$OPTARG" ;;
+			"l") NOTSTYLED_LOG="$OPTARG" ;;
 			"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unknown Arguement: $opt") ;;
 		esac
 	done
@@ -179,10 +183,19 @@ print()
 				echo ""
 			fi
 		fi
+		if [ ! -z ${STYLED_LOG} ];then
+			echo ""  >> "$STYLED_LOG"
+		fi
+		if [ ! -z ${NOTSTYLED_LOG} ]; then
+			echo ""  >> "$NOTSTYLED_LOG"
+		fi
 		((PNL--))
 	done
 	#process_string()
 	string_proc="$STRING"
+	if [ ! -z ${NOTSTYLED_LOG} ]; then
+		echo "$string_proc"  >> "$NOTSTYLED_LOG"
+	fi
 	[ $RAINBOW -eq 1 ] || [ $RANDOM_COLOR -eq 1 ] && colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 	if [ $POS -eq 0 ]; then # non-centered strings
 		[ ! -z $STYLE ] && string_proc="$($STYLE $string_proc)" # Apply style
@@ -232,22 +245,30 @@ print()
 			fi
 		fi
 	fi
+	if [ ! -z ${STYLED_LOG} ];then
+		echo -e "$string_proc"  >> "$STYLED_LOG"
+	fi
 	#process_nl()
-	if [ $PRINTF_E -eq 0 ];then
-		if [ $NL -eq 1 ]; then
-			if [ $ERR_OUT -eq 1 ]; then
+
+	if [ $NL -eq 1 ]; then
+		if [ $ERR_OUT -eq 1 ]; then
+			if [ $PRINTF_E -eq 0 ]; then
 				(>&2 printf "\n")
 			else
-				printf "\n"
-			fi
-		fi
-	else
-		if [ $NL -eq 1 ]; then
-			if [ $ERR_OUT -eq 1 ]; then
 				(>&2 echo "")
+			fi
+		else
+			if [ $PRINTF_E -eq 0 ];then
+				printf "\n"
 			else
 				echo ""
 			fi
+		fi
+		if [ ! -z ${STYLED_LOG} ];then
+			echo ""  >> "$STYLED_LOG"
+		fi
+		if [ ! -z ${NOTSTYLED_LOG} ]; then
+			echo ""  >> "$NOTSTYLED_LOG"
 		fi
 	fi
 }
