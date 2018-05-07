@@ -85,6 +85,8 @@ STYLE=""
 POS=0
 RAINBOW=0
 ERR_OUT=0
+STYLED_LOG=""
+NOTSTYLED_LOG=""
 
 #### Functions ####
 selftests()
@@ -115,9 +117,9 @@ usage()
 	echo ""
 	echo "	Usage for $0:"
 	echo "	[-h] [-T]"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] -S STRING"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING"
+	echo "	[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z|-L|-l] -S STRING"
+	echo "	[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING"
+	echo "	[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING"
 	echo ""
 	echo "		-h: Display this dialog"
 	echo "		-T: Run selftest."
@@ -150,6 +152,8 @@ usage()
 	$0 -f white -b black -S "		-W: Print White text."
 	$0 -Z -S "		-Z: Select a random foreground color for entire text."
 	$0 -z -S "\t\t-z: Rainbow effect. Warning: will eat tabs and newlines."
+	echo "		-L [logfile]: Output to specified log file with styles."
+	echo "		-l [logfile]: Output to specified log file without any styles."
 	echo "		-S string: Set the print string."
 	echo ""
 }
@@ -186,38 +190,51 @@ process_prenl()
 				echo ""
 			fi
 		fi
+		if [ ! -z ${STYLED_LOG} ];then
+			echo ""  >> "$STYLED_LOG"
+		fi
+		if [ ! -z ${NOTSTYLED_LOG} ]; then
+			echo ""  >> "$NOTSTYLED_LOG"
+		fi
 		((PNL--))
 	done
 }
 process_nl()
 {
-	if [ $PRINTF_E -eq 0 ];then
-		if [ $NL -eq 1 ]; then
-			if [ $ERR_OUT -eq 1 ]; then
+	if [ $NL -eq 1 ]; then
+		if [ $ERR_OUT -eq 1 ]; then
+			if [ $PRINTF_E -eq 0 ]; then
 				(>&2 printf "\n")
 			else
-				printf "\n"
-			fi
-		fi
-	else
-		if [ $NL -eq 1 ]; then
-			if [ $ERR_OUT -eq 1 ]; then
 				(>&2 echo "")
+			fi
+		else
+			if [ $PRINTF_E -eq 0 ];then
+				printf "\n"
 			else
 				echo ""
 			fi
+		fi
+		if [ ! -z ${STYLED_LOG} ];then
+			echo ""  >> "$STYLED_LOG"
+		fi
+		if [ ! -z ${NOTSTYLED_LOG} ]; then
+			echo ""  >> "$NOTSTYLED_LOG"
 		fi
 	fi
 }
 process_string()
 {
 	string_proc="$1"
+	if [ ! -z ${NOTSTYLED_LOG} ]; then
+		echo "$string_proc"  >> "$NOTSTYLED_LOG"
+	fi
 	if [ $POS -eq 0 ]; then # non-centered strings
-		[ ! -z $STYLE ] && string_proc="$($STYLE $string_proc)" # Apply style
-		[ ! -z $BKGN ] && string_proc="$BKGN$string_proc" # Apply background color
+		[ ! -z ${STYLE} ] && string_proc="$($STYLE $string_proc)" # Apply style
+		[ ! -z ${BKGN} ] && string_proc="$BKGN$string_proc" # Apply background color
 		if [ $RAINBOW -eq 0 ]; then # rainbow not invoked, so just apply the foreground
-			[ ! -z $FGND ] && string_proc="$FGND$string_proc"
-		elif [ -z $STYLE ]; then # Rainbow invoked. Only apply rainbow if not styled.
+			[ ! -z ${FGND} ] && string_proc="$FGND$string_proc"
+		elif [ -z ${STYLE} ]; then # Rainbow invoked. Only apply rainbow if not styled.
 			string_proc_r=""
 			words=($string_proc)
 			for c in "${words[@]}" # Loop through each word separated by spaces
@@ -225,9 +242,9 @@ process_string()
 				random_color
 				string_proc_r="$string_proc_r$FGND$c "
 			done
-			string_proc=$string_proc_r # Assign final result back to string_proc
+			string_proc=$string_proc_r$NC # Assign final result back to string_proc
 		fi
-		[ ! -z $FGND ] || [ ! -z $BKGN ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
+		[ ! -z ${FGND} ] || [ ! -z ${BKGN} ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
 		if [ $PRINTF_E -eq 0 ]; then # if printf exists
 			if [ $ERR_OUT -eq 1 ]; then # print to stderr
 				(>&2 printf -- "$string_proc")
@@ -258,6 +275,9 @@ process_string()
 			fi
 		fi
 	fi
+	if [ ! -z ${STYLED_LOG} ];then
+		echo -e "$string_proc"  >> "$STYLED_LOG"
+	fi
 }
 random_color()
 {
@@ -266,7 +286,7 @@ random_color()
 	[ $DEBUG -eq 1 ] && (>&2 echo "Random seed: $RANDOM")
 }
 #### Main Run ####
-while getopts "hf:b:IcnpFAKRGYBPCWS:TvZzE" opt
+while getopts "hf:b:IcnpFAKRGYBPCWS:TvZzEL:l:" opt
 do
 	case "$opt" in
 		"h") usage ;;
@@ -323,6 +343,8 @@ do
 		"Z") random_color ;;
 		"z") RAINBOW=1 ;;
 		"E") ERR_OUT=1 ;;
+		"L") STYLED_LOG="$OPTARG" ;;
+		"l") NOTSTYLED_LOG="$OPTARG" ;;
 		"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unknown Arguement: $opt") ;;
 	esac
 done
