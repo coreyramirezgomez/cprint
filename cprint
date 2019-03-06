@@ -215,12 +215,6 @@ process_nl()
 				echo ""
 			fi
 		fi
-		if [ ! -z ${STYLED_LOG} ];then
-			echo ""  >> "$STYLED_LOG"
-		fi
-		if [ ! -z ${NOTSTYLED_LOG} ]; then
-			echo ""  >> "$NOTSTYLED_LOG"
-		fi
 	fi
 }
 process_string()
