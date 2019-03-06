@@ -10,9 +10,9 @@ Command line tool and function written in bash to print colorful text and styles
 
 ## Options ##
 		[-h] [-T]
-		[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] -S STRING
-		[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING
-		[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z|-L|-l] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING
 
 		-h: Display this dialog
 		-T: Run selftest.
@@ -37,6 +37,8 @@ Command line tool and function written in bash to print colorful text and styles
 		-W: Print White text.
 		-Z: Select a random foreground color for entire text.
 		-z: Rainbow effect. Warning: will eat tabs and newlines.
+		-L [logfile]: Output to specified log file with styles.
+		-l [logfile]: Output to specified log file without any styles.
 		-S string: Set the print string.
 
 ## About Files in this repo ##
