@@ -156,7 +156,8 @@ usage()
 	$0 -z -S "\t\t-z: Rainbow effect. Warning: will eat tabs and newlines."
 	echo "		-L logfile: Output to specified log file with styles."
 	echo "		-l logfile: Output to specified log file without any styles."
-	echo "		-e filename: Export portable cprint format to specified file."
+	echo -n "		-e filename: Export portable cprint bash function to specified file. "
+	$0 -I -R -S "Warning: this will overwrite specified file."
 	echo "		-S string: Set the print string."
 	echo ""
 	exit 0
