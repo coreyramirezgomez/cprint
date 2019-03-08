@@ -9,10 +9,12 @@ Command line tool and function written in bash to print colorful text and styles
 + Optional: cowsay binary in path
 
 ## Options ##
-		[-h] [-T]
-		[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z|-L|-l] -S STRING
-		[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING
-		[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-L|-l] -S STRING
+		-h
+		[-v] -T
+		[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] [-L logfile] [-l logfile] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING
+		[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING
+		[-v] -e filename
 
 		-h: Display this dialog
 		-T: Run selftest.
@@ -37,11 +39,7 @@ Command line tool and function written in bash to print colorful text and styles
 		-W: Print White text.
 		-Z: Select a random foreground color for entire text.
 		-z: Rainbow effect. Warning: will eat tabs and newlines.
-		-L [logfile]: Output to specified log file with styles.
-		-l [logfile]: Output to specified log file without any styles.
+		-L logfile: Output to specified log file with styles.
+		-l logfile: Output to specified log file without any styles.
+		-e filename: Export portable cprint bash function to specified file. Warning, this will overwrite specified file.
 		-S string: Set the print string.
-
-## About Files in this repo ##
-+ `cprint`: This is the fully featured binary with all listed options above. As long as you meet the system requirements, this should work out of the box. Try running `./cprint -T` to run the selftests to check.
-+ `cprint_full_function`: This the fully featured version of cprint that can be copied and pasted into other bash scripts.
-+ Just copy the entire function "print(){ ... }" into another bash script and you can reference it with the same command line flags.
