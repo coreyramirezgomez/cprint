@@ -58,134 +58,52 @@ else
 	On_White='\e[47m'       # White
 	NC="\e[m"               # Color Reset
 fi
-if which printf >&/dev/null; then
-	PRINTF_E=0
-else
-	PRINTF_E=1
-fi
-if which cowsay >&/dev/null; then
-	CS="$(which cowsay)"
-else
-	CS=""
-fi
-if which figlet >&/dev/null; then
-	FIG="$(which figlet)"
-else
-	FIG=""
-fi
-DEBUG=0
-VERBOSITY=""
-QUIET=0
-FGND=""
-BKGN=""
+
+which cowsay >&/dev/null && BIN_COW="$(which cowsay)" || BIN_COW=""
+which figlet >&/dev/null && BIN_FIG="$(which figlet)" || BIN_FIG=""
+which printf >&/dev/null && BIN_PRINTF="$(which printf)" || BIN_PRINTF=""
 BOLD=0
+COLOR_BACKGROUND=""
+COLOR_FOREGROUND=""
+DEBUG=0
+ERR_OUT=0
+LOG_NOT_STYLED=""
+LOG_STYLED=""
 NL=1
 PNL=0
+POS=0
+QUIET=0
+RAINBOW=0
 STRING=""
 STYLE=""
-POS=0
-RAINBOW=0
-ERR_OUT=0
-STYLED_LOG=""
-NOTSTYLED_LOG=""
+VERBOSITY=""
 
 #### Functions ####
-selftests()
-{
-	$0 -c "$VERBOSITY" "Centered"
-	$0 -F "$VERBOSITY" "Figlet"
-	$0 -A "$VERBOSITY" "Cowsay"
-	$0 -K "$VERBOSITY" "Black"
-	$0 -R "$VERBOSITY" "Red"
-	$0 -G "$VERBOSITY" "Green"
-	$0 -Y "$VERBOSITY" "Yellow"
-	$0 -B "$VERBOSITY" "Blue"
-	$0 -P "$VERBOSITY" "Purple"
-	$0 -C "$VERBOSITY" "Cyan"
-	$0 -W "$VERBOSITY" "White"
-	$0 -I -K "$VERBOSITY" "Bold Black"
-	$0 -I -R "$VERBOSITY" "Bold Red"
-	$0 -I -G "$VERBOSITY" "Bold Green"
-	$0 -I -Y "$VERBOSITY" "Bold Yellow"
-	$0 -I -B "$VERBOSITY" "Bold Blue"
-	$0 -I -P "$VERBOSITY" "Bold Purple"
-	$0 -I -C "$VERBOSITY" "Bold Cyan"
-	$0 -I -W "$VERBOSITY" "Bold White"
-	exit 0
-}
-usage()
-{
-	echo ""
-	echo "	Usage for $0:"
-	echo "	-h"
-	echo "	[-v] -T"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] [-L logfile] [-l logfile] -S STRING"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING"
-	echo "	[-v] [-E] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING"
-	echo "	[-v] -e filename"
-	echo ""
-	echo "		-h: Display this dialog"
-	echo "		-T: Run selftest."
-	echo "		-v: Enable verbosity for debugging."
-	echo "		-q: Quiet output. Don't print anything to stdin. Use in conjunction with -l and -L."
-	echo "		-E: Send output to stderr instead of stdout (default)"
-	echo "		-n: Do not print newline."
-	echo "		-p: Prepend newline."
-	echo "		-I: Enable bold colors."
-	echo "		-A: Pass text through cowsay (if it exists:$CS)"
-	echo "		-F: Pass text through figlet (if it exists:$FIG)"
-	echo "		-c: Center text."
-	echo "		-b color: Set background."
-	echo "		-f color: Set foreground."
-	$0 -n -S "			Accepted color names for -f and -b: "
-	$0 -n -b white -K -S " black "
-	$0 -n -R -S "red "
-	$0 -n -G -S "green "
-	$0 -n -Y -S "yellow "
-	$0 -n -B -S "blue "
-	$0 -n -P -S "purple "
-	$0 -n -C -S "cyan "
-	$0 -n -W -S "white"
-	$0 -p -f black -b white -S "		-K: Print Black text."
-	$0 -R -S "		-R: Print Red text."
-	$0 -G -S "		-G: Print Green text."
-	$0 -Y -S "		-Y: Print Yellow text."
-	$0 -B -S "		-B: Print Blue text."
-	$0 -P -S "		-P: Print Purple text."
-	$0 -C -S "		-C: Print Cyan text."
-	$0 -f white -b black -S "		-W: Print White text."
-	$0 -Z -S "		-Z: Select a random foreground color for entire text."
-	$0 -z -S "\t\t-z: Rainbow effect. Warning: will eat tabs and newlines."
-	echo "		-L logfile: Output to specified log file with styles."
-	echo "		-l logfile: Output to specified log file without any styles."
-	echo -n "		-e filename: Export portable cprint bash function to specified file. "
-	$0 -I -R -S "Warning: this will overwrite specified file."
-	echo "		-S string: Set the print string."
-	echo ""
-	exit 0
-}
 debug()
 {
-	if [ $DEBUG -eq 1 ]; then
-		(>&2 echo "FGND: $FGND")
-		(>&2 echo "BKGN: $BKGN")
-		(>&2 echo "BOLD: $BOLD")
-		(>&2 echo "NL: $NL")
-		(>&2 echo "PNL: $PNL")
-		(>&2 echo "POS: $POS")
-		(>&2 echo "STYLE: $STYLE")
-		(>&2 echo "RAINBOW: $RAINBOW")
-		(>&2 echo "PRINTF_E: $PRINTF_E")
-		(>&2 echo "ERR_OUT: $ERR_OUT")
-		(>&2 echo "STYLED_LOG: $STYLED_LOG")
-		(>&2 echo "NOTSTYLED_LOG: $NOTSTYLED_LOG")
-		(>&2 echo "STRING: $STRING")
-	fi
+	(>&2 echo "BIN_COW: $BIN_COW")
+	(>&2 echo "BIN_FIG: $BIN_FIG")
+	(>&2 echo "BIN_PRINTF: $BIN_PRINTF")
+	(>&2 echo "BOLD: $BOLD")
+	(>&2 echo "COLOR_FOREGROUND: $COLOR_FOREGROUND")
+	(>&2 echo "COLOR_BACKGROUND: $COLOR_BACKGROUND")
+	(>&2 echo "DEBUG: $DEBUG")
+	(>&2 echo "ERR_OUT: $ERR_OUT")
+	(>&2 echo "LOG_STYLED: $LOG_STYLED")
+	(>&2 echo "LOG_NOT_STYLED: $LOG_NOT_STYLED")
+	(>&2 echo "NL: $NL")
+	(>&2 echo "PNL: $PNL")
+	(>&2 echo "POS: $POS")
+	(>&2 echo "QUIET: $QUIET")
+	(>&2 echo "STRING: $STRING")
+	(>&2 echo "STYLE: $STYLE")
+	(>&2 echo "RAINBOW: $RAINBOW")
+	(>&2 echo "VERBOSITY: $VERBOSITY")
 }
 export_portable_cprint()
 {
 	if [ $# -lt 1 ]; then
-		$0 -R -S "Missing template name."
+		$0 -E -R -S "Missing template name."
 		exit 1
 	fi
 	cat > "$1" << EOL
@@ -250,23 +168,23 @@ print()
 		NC="\e[m"               # Color Reset
 	fi
 	if which cowsay >&/dev/null; then
-		local CS="\$(which cowsay)"
+		local BIN_COW="\$(which cowsay)"
 	else
-		local CS=""
+		local BIN_COW=""
 	fi
 	if which figlet >&/dev/null; then
-		local FIG="\$(which figlet)"
+		local BIN_FIG="\$(which figlet)"
 	else
-		local FIG=""
+		local BIN_FIG=""
 	fi
 	if which printf >&/dev/null; then
-		local PRINTF_E=0
+		local BIN_PRINTF_E=0
 	else
-		local PRINTF_E=1
+		local BIN_PRINTF_E=1
 	fi
 	local DEBUG=0
-	local FGND=""
-	local BKGN=""
+	local COLOR_FOREGROUND=""
+	local COLOR_BACKGROUND=""
 	local BOLD=0
 	local NL=1
 	local PNL=0
@@ -276,34 +194,34 @@ print()
 	local RAINBOW=0
 	local RANDOM_COLOR=0
 	local ERR_OUT=0
-	local STYLED_LOG=""
-	local NOTSTYLED_LOG=""
+	local LOG_STYLED=""
+	local LOG_NOT_STYLED=""
 	while getopts "f:b:IcnpFAKRGYBPCWS:vZzEL:l:" cprint_opt
 	do
 		case "\$cprint_opt" in
 			"f")					# Set foreground/text color.
 				case "\$OPTARG" in
-					"black") [ \$BOLD -eq 0 ] && FGND="\$Black" || FGND="\$BBlack" ;;
-					"red") [ \$BOLD -eq 0 ] && FGND="\$Red" || FGND="\$BRed" ;;
-					"green") [ \$BOLD -eq 0 ] && FGND="\$Green" || FGND="\$BGreen" ;;
-					"yellow") [ \$BOLD -eq 0 ] && FGND="\$Yellow" || FGND="\$BYellow" ;;
-					"blue") [ \$BOLD -eq 0 ] && FGND="\$Blue" || FGND="\$BBlue" ;;
-					"purple") [ \$BOLD -eq 0 ] && FGND="\$Purple" || FGND="\$BPurple" ;;
-					"cyan") [ \$BOLD -eq 0 ] && FGND="\$Cyan" || FGND="\$BCyan" ;;
-					"white") [ \$BOLD -eq 0 ] && FGND="\$White" || FGND="\$BWhite" ;;
+					"black") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Black" || COLOR_FOREGROUND="\$BBlack" ;;
+					"red") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Red" || COLOR_FOREGROUND="\$BRed" ;;
+					"green") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Green" || COLOR_FOREGROUND="\$BGreen" ;;
+					"yellow") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Yellow" || COLOR_FOREGROUND="\$BYellow" ;;
+					"blue") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Blue" || COLOR_FOREGROUND="\$BBlue" ;;
+					"purple") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Purple" || COLOR_FOREGROUND="\$BPurple" ;;
+					"cyan") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Cyan" || COLOR_FOREGROUND="\$BCyan" ;;
+					"white") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$White" || COLOR_FOREGROUND="\$BWhite" ;;
 					"*") [ \$DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: \$OPTARG") ;;
 				esac
 				;;
 			"b")					# Set background color.
 				case "\$OPTARG" in
-					"black") BKGN="\$On_Black" ;;
-					"red") BKGN="\$On_Red" ;;
-					"green") BKGN="\$On_Green" ;;
-					"yellow") BKGN="\$On_Yellow" ;;
-					"blue") BKGN="\$On_Blue" ;;
-					"purple") BKGN="\$On_Purple" ;;
-					"cyan") BKGN="\$On_Cyan" ;;
-					"white") BKGN="\$On_White" ;;
+					"black") COLOR_BACKGROUND="\$On_Black" ;;
+					"red") COLOR_BACKGROUND="\$On_Red" ;;
+					"green") COLOR_BACKGROUND="\$On_Green" ;;
+					"yellow") COLOR_BACKGROUND="\$On_Yellow" ;;
+					"blue") COLOR_BACKGROUND="\$On_Blue" ;;
+					"purple") COLOR_BACKGROUND="\$On_Purple" ;;
+					"cyan") COLOR_BACKGROUND="\$On_Cyan" ;;
+					"white") COLOR_BACKGROUND="\$On_White" ;;
 					"*") [ \$DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: \$OPTARG") ;;
 				esac
 				;;
@@ -320,39 +238,39 @@ print()
 				;;				# Center the text in screen.
 			"n") NL=0 ;;	 			# Print with newline.
 			"p") ((PNL++)) ;; 			# Prepend with newline.
-			"F") [ -f "\$FIG" ] && STYLE="\$FIG" ;;
-			"A") [ -f "\$CS" ] && STYLE="\$CS" ;;
-			"K") [ \$BOLD -eq 0 ] && FGND="\$Black" ||  FGND="\$BBlack" ;;
-			"R") [ \$BOLD -eq 0 ] && FGND="\$Red" || FGND="\$BRed" ;;
-			"G") [ \$BOLD -eq 0 ] && FGND="\$Green" || FGND="\$BGreen" ;;
-			"Y") [ \$BOLD -eq 0 ] && FGND="\$Yellow" || FGND="\$BYellow" ;;
-			"B") [ \$BOLD -eq 0 ] && FGND="\$Blue" || FGND="\$BBlue" ;;
-			"P") [ \$BOLD -eq 0 ] && FGND="\$Purple" || FGND="\$BPurple" ;;
-			"C") [ \$BOLD -eq 0 ] && FGND="\$Cyan" || FGND="\$BCyan" ;;
-			"W") [ \$BOLD -eq 0 ] && FGND="\$White" || FGND="\$BWhite";;
+			"F") [ -f "\$BIN_FIG" ] && STYLE="\$BIN_FIG" ;;
+			"A") [ -f "\$BIN_COW" ] && STYLE="\$BIN_COW" ;;
+			"K") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Black" ||  COLOR_FOREGROUND="\$BBlack" ;;
+			"R") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Red" || COLOR_FOREGROUND="\$BRed" ;;
+			"G") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Green" || COLOR_FOREGROUND="\$BGreen" ;;
+			"Y") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Yellow" || COLOR_FOREGROUND="\$BYellow" ;;
+			"B") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Blue" || COLOR_FOREGROUND="\$BBlue" ;;
+			"P") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Purple" || COLOR_FOREGROUND="\$BPurple" ;;
+			"C") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$Cyan" || COLOR_FOREGROUND="\$BCyan" ;;
+			"W") [ \$BOLD -eq 0 ] && COLOR_FOREGROUND="\$White" || COLOR_FOREGROUND="\$BWhite";;
 			"S") STRING="\$OPTARG" ;;
 			"v") DEBUG=1 ;;
 			"Z") RANDOM_COLOR=1 ;;
 			"z") RAINBOW=1 ;;
 			"E") ERR_OUT=1 ;;
-			"L") STYLED_LOG="\$OPTARG" ;;
-			"l") NOTSTYLED_LOG="\$OPTARG" ;;
+			"L") LOG_STYLED="\$OPTARG" ;;
+			"l") LOG_NOT_STYLED="\$OPTARG" ;;
 		esac
 	done
 	#debug()
 	if [ \$DEBUG -eq 1 ]; then
-		(>&2 echo "FGND: \$FGND")
-		(>&2 echo "BKGN: \$BKGN")
+		(>&2 echo "COLOR_FOREGROUND: \$COLOR_FOREGROUND")
+		(>&2 echo "COLOR_BACKGROUND: \$COLOR_BACKGROUND")
 		(>&2 echo "BOLD: \$BOLD")
 		(>&2 echo "NL: \$NL")
 		(>&2 echo "PNL: \$PNL")
 		(>&2 echo "POS: \$POS")
 		(>&2 echo "STYLE: \$STYLE")
 		(>&2 echo "RAINBOW: \$RAINBOW")
-		(>&2 echo "PRINTF_E: \$PRINTF_E")
+		(>&2 echo "BIN_PRINTF_E: \$BIN_PRINTF_E")
 		(>&2 echo "ERR_OUT: \$ERR_OUT")
-		(>&2 echo "STYLED_LOG: \$STYLED_LOG")
-		(>&2 echo "NOTSTYLED_LOG: \$NOTSTYLED_LOG")
+		(>&2 echo "LOG_STYLED: \$LOG_STYLED")
+		(>&2 echo "LOG_NOT_STYLED: \$LOG_NOT_STYLED")
 		(>&2 echo "STRING: \$STRING")
 	fi
 	if [[ "\$STRING" == "" ]];then
@@ -363,7 +281,7 @@ print()
 		#process_prenl()
 		while [ \$PNL -ne 0 ]
 		do
-			if [ \$PRINTF_E -eq 0 ];then
+			if [ \$BIN_PRINTF_E -eq 0 ];then
 				if [ \$ERR_OUT -eq 1 ]; then
 					(>&2 printf "\n")
 				else
@@ -376,39 +294,39 @@ print()
 					echo ""
 				fi
 			fi
-			if [ ! -z \${STYLED_LOG} ];then
-				echo ""  >> "\$STYLED_LOG"
+			if [ ! -z \${LOG_STYLED} ];then
+				echo ""  >> "\$LOG_STYLED"
 			fi
-			if [ ! -z \${NOTSTYLED_LOG} ]; then
-				echo ""  >> "\$NOTSTYLED_LOG"
+			if [ ! -z \${LOG_NOT_STYLED} ]; then
+				echo ""  >> "\$LOG_NOT_STYLED"
 			fi
 			((PNL--))
 		done
 		#process_string()
 		string_proc="\$STRING"
-		if [ ! -z \${NOTSTYLED_LOG} ]; then
-			echo "\$string_proc"  >> "\$NOTSTYLED_LOG"
+		if [ ! -z \${LOG_NOT_STYLED} ]; then
+			echo "\$string_proc"  >> "\$LOG_NOT_STYLED"
 		fi
 		[ \$RAINBOW -eq 1 ] || [ \$RANDOM_COLOR -eq 1 ] && colors=( "\$Red" "\$Green" "\$Gellow" "\$Blue" "\$Purple" "\$Cyan" )
 		if [ \$POS -eq 0 ]; then # non-centered strings
 			[ ! -z \$STYLE ] && string_proc="\$(\$STYLE \$string_proc)" # Apply style
-			[ ! -z \$BKGN ] && string_proc="\$BKGN\$string_proc" # Apply background color
+			[ ! -z \$COLOR_BACKGROUND ] && string_proc="\$COLOR_BACKGROUND\$string_proc" # Apply background color
 			if [ \$RAINBOW -eq 0 ]; then # rainbow not invoked, so just apply the foreground
-				[ \$RANDOM_COLOR -eq 1 ] && FGND="\${colors[\$RANDOM % \${#colors[@]}]}"
-				[ ! -z \$FGND ] && string_proc="\$FGND\$string_proc"
+				[ \$RANDOM_COLOR -eq 1 ] && COLOR_FOREGROUND="\${colors[\$RANDOM % \${#colors[@]}]}"
+				[ ! -z \$COLOR_FOREGROUND ] && string_proc="\$COLOR_FOREGROUND\$string_proc"
 			elif [ -z \$STYLE ]; then # Rainbow invoked. Only apply rainbow if not styled.
 				string_proc_r=""
 				words=(\$string_proc)
 				for c in "\${words[@]}" # Loop through each word separated by spaces
 				do
-					FGND="\${colors[\$RANDOM % \${#colors[@]}]}"
+					COLOR_FOREGROUND="\${colors[\$RANDOM % \${#colors[@]}]}"
 					[ \$DEBUG -eq 1 ] && (>&2 echo "Random seed: \$RANDOM")
-					string_proc_r="\$string_proc_r\$FGND\$c "
+					string_proc_r="\$string_proc_r\$COLOR_FOREGROUND\$c "
 				done
 				string_proc=\$string_proc_r # Assign final result back to string_proc
 			fi
-			[ ! -z \$FGND ] || [ ! -z \$BKGN ] && string_proc="\$string_proc\$NC"	# Append color reset if foreground/background is set.
-			if [ \$PRINTF_E -eq 0 ]; then # if printf exists
+			[ ! -z \$COLOR_FOREGROUND ] || [ ! -z \$COLOR_BACKGROUND ] && string_proc="\$string_proc\$NC"	# Append color reset if foreground/background is set.
+			if [ \$BIN_PRINTF_E -eq 0 ]; then # if printf exists
 				if [ \$ERR_OUT -eq 1 ]; then # print to stderr
 					(>&2 printf -- "\$string_proc")
 				else # print to stdout
@@ -423,34 +341,34 @@ print()
 				fi
 			fi
 		else # Centered strings
-			if [ \$PRINTF_E -eq 0 ]; then # if printf exists
+			if [ \$BIN_PRINTF_E -eq 0 ]; then # if printf exists
 				if [ \$ERR_OUT -eq 1 ]; then # print to stderr
-					(>&2 printf -- "\$FGND\$BKGN%\$POS"s"\$NC" "\$string_proc")
+					(>&2 printf -- "\$COLOR_FOREGROUND\$COLOR_BACKGROUND%\$POS"s"\$NC" "\$string_proc")
 				else # print to stdout
-					printf -- "\$FGND\$BKGN%\$POS"s"\$NC" "\$string_proc"
+					printf -- "\$COLOR_FOREGROUND\$COLOR_BACKGROUND%\$POS"s"\$NC" "\$string_proc"
 				fi
 			else # printf doesn't exist
 				[ \$DEBUG -eq 1 ] && (>&2 "printf not found, reverting to echo.")
 				if [ \$ERR_OUT -eq 1 ]; then # print to stderr
-					(>&2 echo "\$FGND""\$BKGN""\$string_proc""\$NC")
+					(>&2 echo "\$COLOR_FOREGROUND""\$COLOR_BACKGROUND""\$string_proc""\$NC")
 				else # print to stdout
-					echo "\$FGND""\$BKGN""\$string_proc""\$NC"
+					echo "\$COLOR_FOREGROUND""\$COLOR_BACKGROUND""\$string_proc""\$NC"
 				fi
 			fi
 		fi
-		if [ ! -z \${STYLED_LOG} ];then
-			echo -e "\$string_proc"  >> "\$STYLED_LOG"
+		if [ ! -z \${LOG_STYLED} ];then
+			echo -e "\$string_proc"  >> "\$LOG_STYLED"
 		fi
 		#process_nl()
 		if [ \$NL -eq 1 ]; then
 			if [ \$ERR_OUT -eq 1 ]; then
-				if [ \$PRINTF_E -eq 0 ]; then
+				if [ \$BIN_PRINTF_E -eq 0 ]; then
 					(>&2 printf "\n")
 				else
 					(>&2 echo "")
 				fi
 			else
-				if [ \$PRINTF_E -eq 0 ];then
+				if [ \$BIN_PRINTF_E -eq 0 ];then
 					printf "\n"
 				else
 					echo ""
@@ -461,27 +379,64 @@ print()
 }
 EOL
 }
-process_prenl()
+usage()
 {
-	while [ $PNL -ne 0 ]
-	do
-		if [ $QUIET -ne 1 ];then
-			if [ $PRINTF_E -eq 0 ];then
-				[ $ERR_OUT -eq 1 ] && (>&2 printf "\n") || printf "\n"
-			else
-				[ $ERR_OUT -eq 1 ] && (>&2 echo "") || echo ""
-			fi
-		fi
-		[ ! -z ${STYLED_LOG} ] && echo ""  >> "$STYLED_LOG"
-		[ ! -z ${NOTSTYLED_LOG} ] && echo ""  >> "$NOTSTYLED_LOG"
-		((PNL--))
-	done
+	echo ""
+	echo "	Usage for $0:"
+	echo "	-h"
+	echo "	[-v] -T"
+	echo "	[-v] -E filename"
+	echo "	[-v] [-e] [-n] [-p] [-I] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z|-z] [-L logfile] [-l logfile] -S STRING"
+	echo "	[-v] [-e] [-n] [-p] [-I] [-A|-F]  [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING"
+	echo "	[-v] [-e] [-n] [-p] [-I] [-c] [-b color] [-f color|-K|-R|-G|-Y|-B|-P|-C|-W|-Z] [-L logfile] [-l logfile] -S STRING"
+	echo ""
+	echo "	-h: Display this dialog"
+	echo "	-v: Enable verbosity for debugging."
+	echo "	-T: Run selftest."
+	echo -n "	-E filename: Export portable cprint bash function to specified file. "
+	$0 -I -R -S "Warning: this will overwrite specified file."
+	echo "	-e: Send output to stderr instead of stdout (default)"
+	echo "	-n: Do not print newline."
+	echo "	-p: Prepend newline."
+	echo "	-I: Enable bold colors."
+	echo "	-A: Pass text through cowsay (if it exists:$BIN_COW)"
+	echo "	-F: Pass text through figlet (if it exists:$BIN_FIG)"
+	echo "	-c: Center text."
+	echo "	-b color: Set background."
+	echo "	-f color: Set foreground."
+	$0 -n -S "	[Accepted color names for -f and -b: "
+	$0 -n -b white -K -S " black "
+	$0 -n -R -S "red "
+	$0 -n -G -S "green "
+	$0 -n -Y -S "yellow "
+	$0 -n -B -S "blue "
+	$0 -n -P -S "purple "
+	$0 -n -C -S "cyan "
+	$0 -n -W -S "white"
+	$0 -n -S "]"
+	$0 -p -f black -b white -S "	-K: Print Black text."
+	$0 -R -S "	-R: Print Red text."
+	$0 -G -S "	-G: Print Green text."
+	$0 -Y -S "	-Y: Print Yellow text."
+	$0 -B -S "	-B: Print Blue text."
+	$0 -P -S "	-P: Print Purple text."
+	$0 -C -S "	-C: Print Cyan text."
+	$0 -f white -b black -S "	-W: Print White text."
+	$0 -Z -S "	-Z: Select a random foreground color for entire text."
+	$0 -n -z -S "\t-z: Select a random foreground for each word (aka Rainbow effect)."
+	$0 -I -R -S "Warning: this will eat tabs and newlines."
+	echo "	-L logfile: Output to specified log file with styles."
+	echo "	-l logfile: Output to specified log file without styles."
+	echo "	-q: Quiet output. Don't print anything to stdout. Use in conjunction with -l and -L."
+	echo "	-S string: Set the print string."
+	echo ""
+	exit 0
 }
 process_nl()
 {
-	if [ $QUIET -ne 1 ];then
-		if [ $NL -eq 1 ]; then
-	 		if [ $PRINTF_E -eq 0 ];then
+	if [ $QUIET -ne 1 ]; then
+		if [ $NL -eq 1 ];then
+	 		if [ -f $BIN_PRINTF ];then
 				[ $ERR_OUT -eq 1 ] && (>&2 printf "\n") || printf "\n"
 			else
 				[ $ERR_OUT -eq 1 ] && (>&2 echo "") || echo ""
@@ -489,28 +444,46 @@ process_nl()
 		fi
 	fi
 }
+process_prenl()
+{
+	while [ $PNL -ne 0 ]
+	do
+		if [ $QUIET -ne 1 ];then
+			if [ -f $BIN_PRINTF ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf "\n") || printf "\n"
+			else
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "") || echo ""
+			fi
+		fi
+		[ ! -z ${LOG_STYLED} ] && echo ""  >> "$LOG_STYLED"
+		[ ! -z ${LOG_NOT_STYLED} ] && echo ""  >> "$LOG_NOT_STYLED"
+		((PNL--))
+	done
+}
 process_string()
 {
 	string_proc="$1"
-	[ ! -z ${NOTSTYLED_LOG} ] && echo "$string_proc"  >> "$NOTSTYLED_LOG"
+	[ ! -z ${LOG_NOT_STYLED} ] && echo "$string_proc" >> "$LOG_NOT_STYLED"
 	if [ $POS -eq 0 ]; then # Non-Centered Strings
 		[ ! -z ${STYLE} ] && string_proc="$($STYLE $string_proc)" # Apply style
-		[ ! -z ${BKGN} ] && string_proc="$BKGN$string_proc" # Apply background color
+		[ ! -z ${COLOR_BACKGROUND} ] && string_proc="$COLOR_BACKGROUND$string_proc" # Apply background color
 		if [ $RAINBOW -eq 0 ]; then # rainbow not invoked, so just apply the foreground
-			[ ! -z ${FGND} ] && string_proc="$FGND$string_proc"
+			[ ! -z ${COLOR_FOREGROUND} ] && string_proc="$COLOR_FOREGROUND$string_proc"
 		elif [ -z ${STYLE} ]; then # Rainbow invoked. Only apply rainbow if not styled.
 			string_proc_r=""
 			words=($string_proc)
 			for c in "${words[@]}" # Loop through each word separated by spaces
 			do
 				random_color
-				string_proc_r="$string_proc_r$FGND$c "
+				string_proc_r="$string_proc_r$COLOR_FOREGROUND$c "
 			done
 			string_proc=$string_proc_r$NC # Assign final result back to string_proc
 		fi
-		[ ! -z ${FGND} ] || [ ! -z ${BKGN} ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
+		if [ ! -z ${COLOR_FOREGROUND} ] || [ ! -z ${COLOR_BACKGROUND} ]; then
+			string_proc="$string_proc$NC" # Append color reset if foreground/background is set.
+		fi
 		if [ $QUIET -ne 1 ]; then
-			if [ $PRINTF_E -eq 0 ];then
+			if [ -f $BIN_PRINTF ];then
 				[ $ERR_OUT -eq 1 ] && (>&2 printf -- "$string_proc") || printf -- "$string_proc"
 			else # printf doesn't exist
 				[ $ERR_OUT -eq 1 ] && (>&2 echo "$string_proc") || echo "$string_proc"
@@ -518,86 +491,102 @@ process_string()
 		fi
 	else # Centered Strings
 		if [ $QUIET -ne 1 ];then
-			if [ $PRINTF_E -eq 0 ];then
-				[ $ERR_OUT -eq 1 ] && (>&2 printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc") || printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+			if [ -f $BIN_PRINTF ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf -- "$COLOR_FOREGROUND$COLOR_BACKGROUND%$POS"s"$NC" "$string_proc") || printf -- "$COLOR_FOREGROUND$COLOR_BACKGROUND%$POS"s"$NC" "$string_proc"
 			else # printf doesn't exist
-				[ $ERR_OUT -eq 1 ] && (>&2 echo "$FGND""$BKGN""$string_proc""$NC") || echo "$FGND""$BKGN""$string_proc""$NC"
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "$COLOR_FOREGROUND""$COLOR_BACKGROUND""$string_proc""$NC") || echo "$COLOR_FOREGROUND""$COLOR_BACKGROUND""$string_proc""$NC"
 			fi
 		fi
 	fi
-	[ ! -z ${STYLED_LOG} ] && echo -e "$string_proc"  >> "$STYLED_LOG"
+	[ ! -z ${LOG_STYLED} ] && echo -e "$string_proc" >> "$LOG_STYLED"
 }
 random_color()
 {
 	colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
-	FGND="${colors[$RANDOM % ${#colors[@]}]}"
+	COLOR_FOREGROUND="${colors[$RANDOM % ${#colors[@]}]}"
 	[ $DEBUG -eq 1 ] && (>&2 echo "random_color: Random seed: $RANDOM")
 }
+selftests()
+{
+	$0 -E -c "$VERBOSITY" "Centered"
+	$0 -E -F "$VERBOSITY" "Figlet"
+	$0 -E -A "$VERBOSITY" "Cowsay"
+	$0 -E -K "$VERBOSITY" "Black"
+	$0 -E -R "$VERBOSITY" "Red"
+	$0 -E -G "$VERBOSITY" "Green"
+	$0 -E -Y "$VERBOSITY" "Yellow"
+	$0 -E -B "$VERBOSITY" "Blue"
+	$0 -E -P "$VERBOSITY" "Purple"
+	$0 -E -C "$VERBOSITY" "Cyan"
+	$0 -E -W "$VERBOSITY" "White"
+	$0 -E -I -K "$VERBOSITY" "Bold Black"
+	$0 -E -I -R "$VERBOSITY" "Bold Red"
+	$0 -E -I -G "$VERBOSITY" "Bold Green"
+	$0 -E -I -Y "$VERBOSITY" "Bold Yellow"
+	$0 -E -I -B "$VERBOSITY" "Bold Blue"
+	$0 -E -I -P "$VERBOSITY" "Bold Purple"
+	$0 -E -I -C "$VERBOSITY" "Bold Cyan"
+	$0 -E -I -W "$VERBOSITY" "Bold White"
+	exit 0
+}
 #### Main Run ####
-while getopts "hf:b:IcnpFAKRGYBPCWS:TvqZzEL:l:e:" opt
+while getopts "hvTE:enpIAFcb:f:KRGYBPCWqZzL:l:S:" opt
 do
 	case "$opt" in
 		"h") usage ;;
-		"f")					# Set foreground/text color.
-			case "$OPTARG" in
-				"black") [ $BOLD -eq 0 ] && FGND="$Black" || FGND="$BBlack" ;;
-				"red") [ $BOLD -eq 0 ] && FGND="$Red" || FGND="$BRed" ;;
-				"green") [ $BOLD -eq 0 ] && FGND="$Green" || FGND="$BGreen" ;;
-				"yellow") [ $BOLD -eq 0 ] && FGND="$Yellow" || FGND="$BYellow" ;;
-				"blue") [ $BOLD -eq 0 ] && FGND="$Blue" || FGND="$BBlue" ;;
-				"purple") [ $BOLD -eq 0 ] && FGND="$Purple" || FGND="$BPurple" ;;
-				"cyan") [ $BOLD -eq 0 ] && FGND="$Cyan" || FGND="$BCyan" ;;
-				"white") [ $BOLD -eq 0 ] && FGND="$White" || FGND="$BWhite" ;;
-				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
-			esac
-			;;
-		"b")					# Set background color.
-			case "$OPTARG" in
-				"black") BKGN="$On_Black" ;;
-				"red") BKGN="$On_Red" ;;
-				"green") BKGN="$On_Green" ;;
-				"yellow") BKGN="$On_Yellow" ;;
-				"blue") BKGN="$On_Blue" ;;
-				"purple") BKGN="$On_Purple" ;;
-				"cyan") BKGN="$On_Cyan" ;;
-				"white") BKGN="$On_White" ;;
-				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
-			esac
-			;;
-		"I") BOLD=1 ;;				# Enable bold text.
-		"c")
-			WIDTH=$(tput cols)					# Current screen width
-			if [ $WIDTH -le 80 ]; then
-				POS=0
-			else
-				POS=$((( $WIDTH - 80 ) / 2 ))		# Middle of screen based on screen width
-			fi
-			;;				# Center the text in screen.
-		"n") NL=0 ;;	 			# Skip newline.
-		"p") ((PNL++)) ;; 			# Prepend with newline.
-		"F") [ -f "$FIG" ] && STYLE="$FIG" ;;
-		"A") [ -f "$CS" ] && STYLE="$CS" ;;
-		"K") [ $BOLD -eq 0 ] && FGND="$Black" || FGND="$BBlack" ;;
-		"R") [ $BOLD -eq 0 ] && FGND="$Red" || FGND="$BRed" ;;
-		"G") [ $BOLD -eq 0 ] && FGND="$Green" || FGND="$BGreen" ;;
-		"Y") [ $BOLD -eq 0 ] && FGND="$Yellow" || FGND="$BYellow" ;;
-		"B") [ $BOLD -eq 0 ] && FGND="$Blue" || FGND="$BBlue" ;;
-		"P") [ $BOLD -eq 0 ] && FGND="$Purple" || FGND="$BPurple" ;;
-		"C") [ $BOLD -eq 0 ] && FGND="$Cyan" || FGND="$BCyan" ;;
-		"W") [ $BOLD -eq 0 ] && FGND="$White" || FGND="$BWhite";;
-		"S") STRING="$OPTARG";;
-		"T") selftests;;
 		"v") VERBOSITY="-v" && DEBUG=1;;
+		"T") selftests;;
+		"E") export_portable_cprint "$OPTARG";;
+		"e") ERR_OUT=1 ;;
+		"n") NL=0 ;;
+		"p") ((PNL++)) ;;
+		"I") BOLD=1 ;;
+		"A") [ -f "$BIN_COW" ] && STYLE="$BIN_COW" ;;
+		"F") [ -f "$BIN_FIG" ] && STYLE="$BIN_FIG" ;;
+		"c") [ $(tput cols) -le 80 ] && POS=0 || POS=$((( $(tput cols) - 80 ) / 2 )) ;;
+		"b")
+			case "$OPTARG" in
+				"black") COLOR_BACKGROUND="$On_Black" ;;
+				"red") COLOR_BACKGROUND="$On_Red" ;;
+				"green") COLOR_BACKGROUND="$On_Green" ;;
+				"yellow") COLOR_BACKGROUND="$On_Yellow" ;;
+				"blue") COLOR_BACKGROUND="$On_Blue" ;;
+				"purple") COLOR_BACKGROUND="$On_Purple" ;;
+				"cyan") COLOR_BACKGROUND="$On_Cyan" ;;
+				"white") COLOR_BACKGROUND="$On_White" ;;
+				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
+			esac
+			;;
+		"f")
+			case "$OPTARG" in
+				"black") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Black" || COLOR_FOREGROUND="$BBlack" ;;
+				"red") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Red" || COLOR_FOREGROUND="$BRed" ;;
+				"green") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Green" || COLOR_FOREGROUND="$BGreen" ;;
+				"yellow") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Yellow" || COLOR_FOREGROUND="$BYellow" ;;
+				"blue") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Blue" || COLOR_FOREGROUND="$BBlue" ;;
+				"purple") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Purple" || COLOR_FOREGROUND="$BPurple" ;;
+				"cyan") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Cyan" || COLOR_FOREGROUND="$BCyan" ;;
+				"white") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$White" || COLOR_FOREGROUND="$BWhite" ;;
+				"*") [ $DEBUG -eq 1 ] && (>&2 echo "Unrecognized Arguement: $OPTARG") ;;
+			esac
+			;;
+		"K") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Black" || COLOR_FOREGROUND="$BBlack" ;;
+		"R") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Red" || COLOR_FOREGROUND="$BRed" ;;
+		"G") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Green" || COLOR_FOREGROUND="$BGreen" ;;
+		"Y") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Yellow" || COLOR_FOREGROUND="$BYellow" ;;
+		"B") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Blue" || COLOR_FOREGROUND="$BBlue" ;;
+		"P") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Purple" || COLOR_FOREGROUND="$BPurple" ;;
+		"C") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$Cyan" || COLOR_FOREGROUND="$BCyan" ;;
+		"W") [ $BOLD -eq 0 ] && COLOR_FOREGROUND="$White" || COLOR_FOREGROUND="$BWhite";;
 		"q") QUIET=1;;
 		"Z") random_color ;;
 		"z") RAINBOW=1 ;;
-		"E") ERR_OUT=1 ;;
-		"L") STYLED_LOG="$OPTARG" ;;
-		"l") NOTSTYLED_LOG="$OPTARG" ;;
-		"e") export_portable_cprint "$OPTARG";;
+		"L") LOG_STYLED="$OPTARG" ;;
+		"l") LOG_NOT_STYLED="$OPTARG" ;;
+		"S") STRING="$OPTARG";;
 	esac
 done
-debug
+[ $DEBUG -eq 1 ] && debug
 if [[ "$STRING" == "" ]];then
 	shift "$((OPTIND - 1))"
 	STRING="$*"
