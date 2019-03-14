@@ -75,6 +75,7 @@ else
 fi
 DEBUG=0
 VERBOSITY=""
+QUIET=0
 FGND=""
 BKGN=""
 BOLD=0
@@ -126,6 +127,7 @@ usage()
 	echo "		-h: Display this dialog"
 	echo "		-T: Run selftest."
 	echo "		-v: Enable verbosity for debugging."
+	echo "		-q: Quiet output. Don't print anything to stdin. Use in conjunction with -l and -L."
 	echo "		-E: Send output to stderr instead of stdout (default)"
 	echo "		-n: Do not print newline."
 	echo "		-p: Prepend newline."
@@ -463,42 +465,26 @@ process_prenl()
 {
 	while [ $PNL -ne 0 ]
 	do
-		if [ $PRINTF_E -eq 0 ];then
-			if [ $ERR_OUT -eq 1 ]; then
-				(>&2 printf "\n")
+		if [ $QUIET -ne 1 ];then
+			if [ $PRINTF_E -eq 0 ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf "\n") || printf "\n"
 			else
-				printf "\n"
-			fi
-		else
-			if [ $ERR_OUT -eq 1 ]; then
-				(>&2 echo "")
-			else
-				echo ""
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "") || echo ""
 			fi
 		fi
-		if [ ! -z ${STYLED_LOG} ];then
-			echo ""  >> "$STYLED_LOG"
-		fi
-		if [ ! -z ${NOTSTYLED_LOG} ]; then
-			echo ""  >> "$NOTSTYLED_LOG"
-		fi
+		[ ! -z ${STYLED_LOG} ] && echo ""  >> "$STYLED_LOG"
+		[ ! -z ${NOTSTYLED_LOG} ] && echo ""  >> "$NOTSTYLED_LOG"
 		((PNL--))
 	done
 }
 process_nl()
 {
-	if [ $NL -eq 1 ]; then
-		if [ $ERR_OUT -eq 1 ]; then
-			if [ $PRINTF_E -eq 0 ]; then
-				(>&2 printf "\n")
+	if [ $QUIET -ne 1 ];then
+		if [ $NL -eq 1 ]; then
+	 		if [ $PRINTF_E -eq 0 ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf "\n") || printf "\n"
 			else
-				(>&2 echo "")
-			fi
-		else
-			if [ $PRINTF_E -eq 0 ];then
-				printf "\n"
-			else
-				echo ""
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "") || echo ""
 			fi
 		fi
 	fi
@@ -506,10 +492,8 @@ process_nl()
 process_string()
 {
 	string_proc="$1"
-	if [ ! -z ${NOTSTYLED_LOG} ]; then
-		echo "$string_proc"  >> "$NOTSTYLED_LOG"
-	fi
-	if [ $POS -eq 0 ]; then # non-centered strings
+	[ ! -z ${NOTSTYLED_LOG} ] && echo "$string_proc"  >> "$NOTSTYLED_LOG"
+	if [ $POS -eq 0 ]; then # Non-Centered Strings
 		[ ! -z ${STYLE} ] && string_proc="$($STYLE $string_proc)" # Apply style
 		[ ! -z ${BKGN} ] && string_proc="$BKGN$string_proc" # Apply background color
 		if [ $RAINBOW -eq 0 ]; then # rainbow not invoked, so just apply the foreground
@@ -525,48 +509,32 @@ process_string()
 			string_proc=$string_proc_r$NC # Assign final result back to string_proc
 		fi
 		[ ! -z ${FGND} ] || [ ! -z ${BKGN} ] && string_proc="$string_proc$NC"	# Append color reset if foreground/background is set.
-		if [ $PRINTF_E -eq 0 ]; then # if printf exists
-			if [ $ERR_OUT -eq 1 ]; then # print to stderr
-				(>&2 printf -- "$string_proc")
-			else # print to stdout
-				printf -- "$string_proc"
-			fi
-		else # printf doesn't exist
-			[ $DEBUG -eq 1 ] && (>&2 echo "printf not found, reverting to echo.")
-			if [ $ERR_OUT -eq 1 ]; then # print to stderr
-				(>&2 echo "$string_proc")
-			else # print to stdout
-				echo "$string_proc"
+		if [ $QUIET -ne 1 ]; then
+			if [ $PRINTF_E -eq 0 ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf -- "$string_proc") || printf -- "$string_proc"
+			else # printf doesn't exist
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "$string_proc") || echo "$string_proc"
 			fi
 		fi
-	else # Centered strings
-		if [ $PRINTF_E -eq 0 ]; then # if printf exists
-			if [ $ERR_OUT -eq 1 ]; then # print to stderr
-				(>&2 printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc")
-			else # print to stdout
-				printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
-			fi
-		else # printf doesn't exist
-			[ $DEBUG -eq 1 ] && (>&2 "printf not found, reverting to echo.")
-			if [ $ERR_OUT -eq 1 ]; then # print to stderr
-				(>&2 echo "$FGND""$BKGN""$string_proc""$NC")
-			else # print to stdout
-				echo "$FGND""$BKGN""$string_proc""$NC"
+	else # Centered Strings
+		if [ $QUIET -ne 1 ];then
+			if [ $PRINTF_E -eq 0 ];then
+				[ $ERR_OUT -eq 1 ] && (>&2 printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc") || printf -- "$FGND$BKGN%$POS"s"$NC" "$string_proc"
+			else # printf doesn't exist
+				[ $ERR_OUT -eq 1 ] && (>&2 echo "$FGND""$BKGN""$string_proc""$NC") || echo "$FGND""$BKGN""$string_proc""$NC"
 			fi
 		fi
 	fi
-	if [ ! -z ${STYLED_LOG} ];then
-		echo -e "$string_proc"  >> "$STYLED_LOG"
-	fi
+	[ ! -z ${STYLED_LOG} ] && echo -e "$string_proc"  >> "$STYLED_LOG"
 }
 random_color()
 {
 	colors=( "$Red" "$Green" "$Gellow" "$Blue" "$Purple" "$Cyan" )
 	FGND="${colors[$RANDOM % ${#colors[@]}]}"
-	[ $DEBUG -eq 1 ] && (>&2 echo "Random seed: $RANDOM")
+	[ $DEBUG -eq 1 ] && (>&2 echo "random_color: Random seed: $RANDOM")
 }
 #### Main Run ####
-while getopts "hf:b:IcnpFAKRGYBPCWS:TvZzEL:l:e:" opt
+while getopts "hf:b:IcnpFAKRGYBPCWS:TvqZzEL:l:e:" opt
 do
 	case "$opt" in
 		"h") usage ;;
@@ -620,6 +588,7 @@ do
 		"S") STRING="$OPTARG";;
 		"T") selftests;;
 		"v") VERBOSITY="-v" && DEBUG=1;;
+		"q") QUIET=1;;
 		"Z") random_color ;;
 		"z") RAINBOW=1 ;;
 		"E") ERR_OUT=1 ;;
