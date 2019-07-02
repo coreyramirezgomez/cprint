@@ -20,11 +20,11 @@ debug()
 export_portable_cprint()
 {
 	if [ $# -lt 1 ]; then
-		$0 -E -R -S "Missing template name."
+		bash $0 -E -R -S "Missing template name."
 		exit 1
 	fi
 	if [ ! -f "$(which sed 2>/dev/null)" ]; then
-		$0 -E -R -S "Missing sed Binary. Required for export."
+		bash $0 -E -R -S "Missing sed Binary. Required for export."
 		exit 1
 	fi
 	touch "$1"
@@ -66,30 +66,30 @@ export_portable_cprint()
 	if [ -f "$(which beautysh)" ]; then
 		beautysh --tab --files "$1"
 	else
-		$0 -E -Y -S "beautysh missing. Manual Formatting for $1 required."
+		bash $0 -E -Y -S "beautysh missing. Manual Formatting for $1 required."
 	fi
 }
 self_tests()
 {
-	$0 -e -A -S "Cowsay"
-	$0 -e -F -S "Figlet"
-	$0 -e -c -S "Centered"
-	$0 -e -K -S "Black"
-	$0 -e -W -S "White"
-	$0 -e -R -S "Red"
-	$0 -e -Y -S "Yellow"
-	$0 -e -G -S "Green"
-	$0 -e -B -S "Blue"
-	$0 -e -C -S "Cyan"
-	$0 -e -P -S "Purple"
-	$0 -e -I -K -S "Bold Black"
-	$0 -e -I -W -S "Bold White"
-	$0 -e -I -R -S "Bold Red"
-	$0 -e -I -Y -S "Bold Yellow"
-	$0 -e -I -G -S "Bold Green"
-	$0 -e -I -B -S "Bold Blue"
-	$0 -e -I -C -S "Bold Cyan"
-	$0 -e -I -P -S "Bold Purple"
+	bash $0 -e -A -S "Cowsay"
+	bash $0 -e -F -S "Figlet"
+	bash $0 -e -c -S "Centered"
+	bash $0 -e -K -S "Black"
+	bash $0 -e -W -S "White"
+	bash $0 -e -R -S "Red"
+	bash $0 -e -Y -S "Yellow"
+	bash $0 -e -G -S "Green"
+	bash $0 -e -B -S "Blue"
+	bash $0 -e -C -S "Cyan"
+	bash $0 -e -P -S "Purple"
+	bash $0 -e -I -K -S "Bold Black"
+	bash $0 -e -I -W -S "Bold White"
+	bash $0 -e -I -R -S "Bold Red"
+	bash $0 -e -I -Y -S "Bold Yellow"
+	bash $0 -e -I -G -S "Bold Green"
+	bash $0 -e -I -B -S "Bold Blue"
+	bash $0 -e -I -C -S "Bold Cyan"
+	bash $0 -e -I -P -S "Bold Purple"
 	exit 0
 }
 usage()
@@ -107,35 +107,39 @@ usage()
 	echo "	[-p|--pre-newline]: Prepend newline."
 	echo "	[-I|-b|--bold]: Enable bold colors."
 	echo -n "	[-A|--cowsay]: Output with cowsay. Exists?: "
-	[ -f "$(which cowsay 2>/dev/null)" ] && $0 -G -S "YES ($(which cowsay))" || $0 -R -S "NO"
+	[ -f "$(which cowsay 2>/dev/null)" ] && bash $0 -G -S "YES ($(which cowsay))" || bash $0 -R -S "NO"
 	echo -n "	[-F|--figlet]: Output with figlet. Exists?: "
-	[ -f "$(which figlet 2>/dev/null)" ] && $0 -G -S "YES ($(which figlet))" || $0 -R -S "NO"
+	[ -f "$(which figlet 2>/dev/null)" ] && bash $0 -G -S "YES ($(which figlet))" || bash $0 -R -S "NO"
 	echo "	--cow-file file: Set the cowsay style if using cowsay."
 	echo "	--fig-file file: Set the figlet style if using figlet."
 	echo "	[-c|--centered]: Center text."
 	echo "	[--BG|--bg|--background] color-name: Set background color-name."
 	echo "	[--FG|--fg|--foreground] color-name: Set foreground color-name."
-	$0 -n -S "	[Accepted color-names: "
-	$0 -n -b white -K -S "black"
+	bash $0 -n -S "		[Accepted color-names: "
+	bash $0 -n --bg white -K -S "black"
 	echo -n " "
-	$0 -n -W -S "white "
-	$0 -n -R -S "red "
-	$0 -n -Y -S "yellow "
-	$0 -n -G -S "green "
-	$0 -n -B -S "blue "
-	$0 -n -C -S "cyan "
-	$0 -n -P -S "purple "
-	$0 -n -Z -S "random]"
+	bash $0 -n --bg black -W -S "white"
+	echo -n " "
+	bash $0 -n -R -S "red "
+	bash $0 -n -Y -S "yellow "
+	bash $0 -n -G -S "green "
+	bash $0 -n -B -S "blue "
+	bash $0 -n -C -S "cyan "
+	bash $0 -n -P -S "purple "
+	bash $0 -n -Z -S "random"
+	echo -n "]"
 	echo ""
-	$0 -p -f black -b white -S "	[-K|--black]: Print Black text."
-	$0 -f white -b black -S "	[-W|--white]: Print White text."
-	$0 -R -S "	[-R|--red]: Print Red text."
-	$0 -Y -S "	[-Y|--yellow]: Print Yellow text."
-	$0 -G -S "	[-G|--green]: Print Green text."
-	$0 -B -S "	[-B|--blue]: Print Blue text."
-	$0 -C -S "	[-C|--cyan]: Print Cyan text."
-	$0 -P -S "	[-P|--purple]: Print Purple text."
-	$0 -Z -S "	[-Z|--random]: Print Random Color text."
+	echo -n "	"
+	bash $0 --fg black --bg white -S "[-K|--black]: Print Black text."
+	echo -n "	"
+	bash $0 --fg white --bg black -S "[-W|--white]: Print White text."
+	bash $0 -R -S "	[-R|--red]: Print Red text."
+	bash $0 -Y -S "	[-Y|--yellow]: Print Yellow text."
+	bash $0 -G -S "	[-G|--green]: Print Green text."
+	bash $0 -B -S "	[-B|--blue]: Print Blue text."
+	bash $0 -C -S "	[-C|--cyan]: Print Cyan text."
+	bash $0 -P -S "	[-P|--purple]: Print Purple text."
+	bash $0 -Z -S "	[-Z|--random]: Print Random Color text."
 	echo "	[-L|--log-styled] logfile: Output to specified log file with styles."
 	echo "	[-l|--log] logfile: Output to specified log file without styles."
 	echo "	[-S|--string] string: Set the print string."
@@ -323,7 +327,7 @@ parse_args()
 			"-B" | "--blue") FOREGROUND="$(translate_color_code 'FGBLUE')";;
 			"-C" | "--cyan") FOREGROUND="$(translate_color_code 'FGCYAN')";;
 			"-P" | "--purple") FOREGROUND="$(translate_color_code 'FGPURPLE')";;
-			"-Z" | "--random") FOREGROUND="$(translate_color_code "$TYPE""$(random_color)")";;
+			"-Z" | "--random") FOREGROUND="$(translate_color_code "FG$(random_color)")";;
 			"-L" | "--log-styled")
 				if [ -d "$2" ]; then
 					echo "Specified filename is a directory: $2"
