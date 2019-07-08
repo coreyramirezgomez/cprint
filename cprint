@@ -228,7 +228,7 @@ translate_color_code()
 		"RESET") CODE='m' ;;
 	esac
 	case "$(uname -s)" in
-		"Darwin") echo "\033[""$CODE" ;;
+		"Darwin" | "FreeBSD") echo "\033[""$CODE" ;;
 		"Linux") echo "\e[""$CODE" ;;
 		*)
 			echo "Unknown System: $(uname -s)"
