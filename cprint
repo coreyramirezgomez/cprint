@@ -20,11 +20,11 @@ debug()
 export_portable_cprint()
 {
 	if [ $# -lt 1 ]; then
-		bash $0 -E -R -S "Missing template name."
+		bash $0 -e -R -S "Missing template name."
 		exit 1
 	fi
 	if [ ! -f "$(which sed 2>/dev/null)" ]; then
-		bash $0 -E -R -S "Missing sed Binary. Required for export."
+		bash $0 -e -R -S "Missing sed Binary. Required for export."
 		exit 1
 	fi
 	touch "$1"
@@ -66,7 +66,7 @@ export_portable_cprint()
 	if [ -f "$(which beautysh)" ]; then
 		beautysh --tab --files "$1"
 	else
-		bash $0 -E -Y -S "beautysh missing. Manual Formatting for $1 required."
+		bash $0 -e -Y -S "beautysh missing. Manual Formatting for $1 required."
 	fi
 }
 self_tests()
