@@ -256,7 +256,7 @@ parse_args()
 					exit 1
 				fi
 				export_portable_cprint "$2"
-				shift
+				exit 0
 				;;
 			#### Portable Switches ####
 			"-e" | "--stderr") ERR_OUT=1 ;;
