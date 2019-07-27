@@ -140,6 +140,7 @@ usage()
 	bash $0 -C -S "	[-C|--cyan]: Print Cyan text."
 	bash $0 -P -S "	[-P|--purple]: Print Purple text."
 	bash $0 -Z -S "	[-Z|--random]: Print Random Color text."
+	echo "	--use-echo: Force the use of echo binary instead of printf."
 	echo "	[-L|--log-styled] logfile: Output to specified log file with styles."
 	echo "	[-l|--log] logfile: Output to specified log file without styles."
 	echo "	[-S|--string] string: Set the print string."
@@ -174,10 +175,10 @@ process_string()
 	[ -z "${FOREGROUND}" ] && FOREGROUND=""
 	[ -z "${BACKGROUND}" ] && BACKGROUND=""
 	RESET=$(translate_color_code "RESET")
-	if [ -f "$(which printf 2>/dev/null)" ];then
+	if [ ! -f "$(which printf 2>/dev/null)" ] || [ ! -z ${USE_ECHO} ]; then
+		[ ! -z ${ERR_OUT} ] && (>&2 echo -n -e "$FOREGROUND""$BACKGROUND""$STRING""$RESET") || echo -n -e "$FOREGROUND""$BACKGROUND""$STRING""$RESET"
+	else
 		[ ! -z ${ERR_OUT} ] && (>&2 printf -- "$FOREGROUND$BACKGROUND%$POS"s"$RESET" "$STRING") || printf -- "$FOREGROUND$BACKGROUND%$POS"s"$RESET" "$STRING"
-	else # printf doesn't exist
-		[ ! -z ${ERR_OUT} ] && (>&2 echo "$FOREGROUND""$BACKGROUND""$STRING""$RESET") || echo "$FOREGROUND""$BACKGROUND""$STRING""$RESET"
 	fi
 	[ ! -z ${LOG_STYLED} ] && echo -e "$STRING" >> "$LOG_STYLED"
 }
@@ -327,6 +328,7 @@ parse_args()
 			"-B" | "--blue") FOREGROUND="$(translate_color_code 'FGBLUE')";;
 			"-C" | "--cyan") FOREGROUND="$(translate_color_code 'FGCYAN')";;
 			"-P" | "--purple") FOREGROUND="$(translate_color_code 'FGPURPLE')";;
+			"--use-echo") USE_ECHO=1 ;;
 			"-Z" | "--random") FOREGROUND="$(translate_color_code "FG$(random_color)")";;
 			"-L" | "--log-styled")
 				if [ -d "$2" ]; then
